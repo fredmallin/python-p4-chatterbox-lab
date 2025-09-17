@@ -4,7 +4,7 @@ import Search from "./Search";
 import MessageList from "./MessageList";
 import NewMessage from "./NewMessage";
 
-const testUser = { username: "Duane" };
+const testUser = { username: "Fredrick" };
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -12,7 +12,7 @@ function App() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:4000/messages")
+    fetch("http://127.0.0.1:5555/messages")
       .then((r) => r.json())
       .then((messages) => setMessages(messages));
   }, []);
@@ -22,19 +22,26 @@ function App() {
   }
 
   function handleDeleteMessage(id) {
-    const updatedMessages = messages.filter((message) => message.id !== id);
-    setMessages(updatedMessages);
+    fetch(`http://127.0.0.1:5555/messages/${id}`, { method: "DELETE" })
+      .then(() => {
+        const updatedMessages = messages.filter((msg) => msg.id !== id);
+        setMessages(updatedMessages);
+      });
   }
 
   function handleUpdateMessage(updatedMessageObj) {
-    const updatedMessages = messages.map((message) => {
-      if (message.id === updatedMessageObj.id) {
-        return updatedMessageObj;
-      } else {
-        return message;
-      }
-    });
-    setMessages(updatedMessages);
+    fetch(`http://127.0.0.1:5555/messages/${updatedMessageObj.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedMessageObj),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const updatedMessages = messages.map((msg) =>
+          msg.id === data.id ? data : msg
+        );
+        setMessages(updatedMessages);
+      });
   }
 
   const displayedMessages = messages.filter((message) =>
